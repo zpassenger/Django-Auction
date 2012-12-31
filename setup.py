@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 import os
-import shop
+import auction
 
 CLASSIFIERS = [
     'Environment :: Web Environment',
@@ -17,7 +17,7 @@ setup(
     author="Joe Curlee",
     author_email="joe.curlee@gmail.com",
     name='django-auction',
-    version=shop.__version__,
+    version=auction.__version__,
     description='Based on django-shop, Django Auction aims to allow easy development of auction apps.',
     long_description=open(os.path.join(os.path.dirname(__file__), 'README.md')).read(),
     url='http://joecurlee.com/django-auction/',
