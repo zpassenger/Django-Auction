@@ -1,0 +1,17 @@
+{% extends "auction/base.html" %}
+
+{% block content %}
+<h1>Bids</h1>
+{% if object_list %}
+    <ul>
+        {% for object in object_list %}
+            <li>
+                <a href="{% url lot object.lot.auction.slug object.lot.slug %}">{{object.lot.name}}</a> {{object.amount}}
+                <a href="{% url delete_bid object.pk %}">delete</a>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>You have no bids.</p>
+{% endif %}
+{% endblock %}

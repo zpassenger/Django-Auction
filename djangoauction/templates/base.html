@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+        <title>Django Auction</title>
+    </head>
+    <body class="auction">
+        {% block navigation %}
+        <ul>
+            <li><a href="{% url auctions %}">Auctions</a></li>
+            <li><a href="{% url bids %}">My bids</a></li>
+        </ul>
+        {% endblock %}
+        {% block content %}{% endblock %}
+    </body>
+</html>

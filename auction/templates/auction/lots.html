@@ -1,0 +1,14 @@
+{% extends "auction/base.html" %}
+
+{% block content %}
+<h1>Auctions &raquo; {{auction.name}}</h1>
+{% if object_list %}
+    <ul>
+        {% for lot in object_list %}
+            <li><a href="{% url lot auction.slug lot.slug %}">{{lot.name}}</a></li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>Sorry, but this auction has no lots.</p>
+{% endif %}
+{% endblock %}
