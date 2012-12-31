@@ -3,7 +3,6 @@ from django.utils.translation import ugettext_lazy as _
 from polymorphic.polymorphic_model import PolymorphicModel
 from django.contrib.auth.models import User
 from decimal import Decimal
-from django.utils import timezone
 
 class CurrencyField(models.DecimalField):
     __metaclass__ = models.SubfieldBase
@@ -136,6 +135,7 @@ class BaseBidItem(models.Model):
         verbose_name_plural = _('Bid items')
     
     def is_locked(self):
-        if self.lot.auction.end_date <= timezone.now():
+        from datetime import datetime
+        if self.lot.auction.end_date <= datetime.now():
             return True
         return False
