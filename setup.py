@@ -25,7 +25,7 @@ setup(
     platforms=['OS Independent'],
     classifiers=CLASSIFIERS,
     install_requires=[
-        'Django==1.4.3',
+        'Django>=1.3',
         'South==0.7.6',
         'django-polymorphic==0.2',
         'wsgiref==0.1.2',
