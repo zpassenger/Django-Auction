@@ -14,7 +14,7 @@ class AuctionListView(ListView):
     View for displaying auctions.
     """
     
-    template_name = os.path.join('auction', 'auction.html')
+    template_name = os.path.join('auction', 'auctions.html')
     model = auction.models.Auction
 
 class AuctionView(DetailView):
