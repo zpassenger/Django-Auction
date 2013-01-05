@@ -2,9 +2,13 @@
 
 {% block content %}
 <h1>Auctions</h1>
-<ul>
-    {% for auction in object_list %}
-        <li><a href="{% url auction auction.slug %}">{{auction.name}}</a></li>
-    {% endfor %}
-</ul>
+{% if object_list %}
+    <ul>
+        {% for auction in object_list %}
+            <li><a href="{% url auction auction.slug %}">{{auction.name}}</a></li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>Sorry, there are currently no auctions to display.</p>
+{% endif %}
 {% endblock %}
