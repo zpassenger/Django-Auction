@@ -5,7 +5,7 @@
 {% if object_list %}
     <ul>
         {% for lot in object_list %}
-            <li><a href="{% url lot auction.slug lot.slug %}">{{lot.name}}</a></li>
+            <li><a href="{% url lot auction.slug lot.slug lot.pk %}">{{lot.name}}</a></li>
         {% endfor %}
     </ul>
 {% else %}
