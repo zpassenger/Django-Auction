@@ -1,12 +1,17 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from polymorphic.polymorphic_model import PolymorphicModel
 from django.contrib.auth.models import User
 from decimal import Decimal
+from polymorphic.polymorphic_model import PolymorphicModel
+import datetime
+from django.utils.timezone import utc
+
+from south.modelsinspector import add_introspection_rules
+add_introspection_rules([], ["^auction\.basemodels\.CurrencyField"])
 
 class CurrencyField(models.DecimalField):
     __metaclass__ = models.SubfieldBase
-    
+
     def to_python(self, value):
         try:
             return super(CurrencyField, self).to_python(value=value).quantize(Decimal("0.01"))
@@ -28,7 +33,7 @@ class BaseAuction(PolymorphicModel):
         app_label = 'auction'
         verbose_name = _('Auction')
         verbose_name_plural = _('Auctions')
-    
+
     def __unicode__(self):
         return self.name
 
@@ -36,16 +41,16 @@ class BaseAuctionLot(PolymorphicModel):
     name = models.CharField(max_length=255)
     slug = models.SlugField()
     active = models.BooleanField(default=False)
-    auction = models.ForeignKey('auction.Auction', related_name='lots')
+    auction = models.ForeignKey('Auction', related_name='lots')
     date_added = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         abstract = True
         app_label = 'auction'
         verbose_name = _('Auction lot')
         verbose_name_plural = _('Auction lots')
-    
+
     def __unicode__(self):
         return self.name
 
@@ -56,16 +61,19 @@ class BaseBidBasket(models.Model):
     user = models.OneToOneField(User)
     date_added = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         abstract = True
         app_label = 'auction'
         verbose_name = _('Bid basket')
         verbose_name_plural = _('Bid baskets')
-    
+
     def add_bid(self, lot, amount):
         from auction.models import BidItem
         self.save()
+
+        if not lot.active:
+            return False
 
         item = BidItem.objects.filter(bid_basket=self,
                                       lot=lot)
@@ -78,7 +86,7 @@ class BaseBidBasket(models.Model):
                                                      lot=lot,
                                                      amount=amount)
         return bid_basket_item
-    
+
     def update_bid(self, bid_basket_item_id, amount):
         """
         Update amount of bid. Delete bid if amount is 0.
@@ -92,7 +100,7 @@ class BaseBidBasket(models.Model):
                 bid_basket_item.save()
             self.save()
         return bid_basket_item
-    
+
     def delete_bid(self, bid_basket_item_id):
         """
         Delete a single item from bid basket.
@@ -101,7 +109,7 @@ class BaseBidBasket(models.Model):
         if not bid_basket_item.is_locked():
             bid_basket_item.delete()
         return bid_basket_item
-    
+
     def empty(self):
         """
         Remove all bids from bid basket.
@@ -111,7 +119,7 @@ class BaseBidBasket(models.Model):
             for bid in bids:
                 if not bid.is_locked():
                     bid.delete()
-    
+
     def total_bids(self):
         """
         Returns total bids in basket.
@@ -133,9 +141,9 @@ class BaseBidItem(models.Model):
         app_label = 'auction'
         verbose_name = _('Bid item')
         verbose_name_plural = _('Bid items')
-    
+
     def is_locked(self):
-        from datetime import datetime
-        if self.lot.auction.end_date <= datetime.now():
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        if self.lot.auction.end_date <= now:
             return True
         return False
