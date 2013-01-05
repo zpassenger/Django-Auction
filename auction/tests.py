@@ -299,7 +299,124 @@ class BidBasketModelTests(TestCase, TestBaseClassMixin):
         biditems_2 = auction.models.BidItem.objects.filter(bid_basket=bidbasket_2)
         self.assertEqual(len(biditems_1), 2)
         self.assertEqual(len(biditems_2), 0)
+    
+    def test_add_bid_to_inactive_lot(self):
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        auction_name = 'whatever auction'
+        a,created = auction.models.Auction.objects.get_or_create(name=auction_name,
+                                                                 slug=slugify(auction_name),
+                                                                 start_date=now,
+                                                                 end_date=now + datetime.timedelta(365),
+                                                                 active=True,
+                                                                 total_bids=0)
+        
+        lot_name = 'whatever'
+        lot,created = auction.models.Lot.objects.get_or_create(name=lot_name,
+                                                               slug=slugify(lot_name),
+                                                               active=False,
+                                                               auction=a)
+        bidbasket = auction.utils.get_or_create_bidbasket(self.request)
+        self.assertFalse(bidbasket.add_bid(lot, '42.00'))
+    
+    def test_update_bid_locked_biditem(self):
+        """
+        Test that an attempt at updating a bid when biditem is locked fails.
+        """
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        auction_name = 'whatever auction'
+        a,created = auction.models.Auction.objects.get_or_create(name=auction_name,
+                                                                 slug=slugify(auction_name),
+                                                                 start_date=now,
+                                                                 end_date=now + datetime.timedelta(365),
+                                                                 active=True,
+                                                                 total_bids=0)
+        
+        lot_name = 'whatever'
+        lot,created = auction.models.Lot.objects.get_or_create(name=lot_name,
+                                                               slug=slugify(lot_name),
+                                                               active=True,
+                                                               auction=a)
+        bidbasket = auction.utils.get_or_create_bidbasket(self.request)
+        bidbasket.add_bid(lot, '42.00')
+        
+        a.end_date = now - datetime.timedelta(365)
+        a.save()
+        
+        biditem = auction.models.BidItem.objects.get(bid_basket=bidbasket)
+        biditem = bidbasket.update_bid(biditem.pk, '50')
+        self.assertEquals(biditem.amount, Decimal('42.00'))
+    
+    def test_delete_bid_locked_biditem(self):
+        """
+        Test that attempting to delete a bid when biditem is locked fails.
+        """
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        auction_name = 'whatever auction'
+        a,created = auction.models.Auction.objects.get_or_create(name=auction_name,
+                                                                 slug=slugify(auction_name),
+                                                                 start_date=now,
+                                                                 end_date=now + datetime.timedelta(365),
+                                                                 active=True,
+                                                                 total_bids=0)
 
+        lot_name = 'whatever'
+        lot,created = auction.models.Lot.objects.get_or_create(name=lot_name,
+                                                               slug=slugify(lot_name),
+                                                               active=True,
+                                                               auction=a)
+        bidbasket = auction.utils.get_or_create_bidbasket(self.request)
+        bidbasket.add_bid(lot, '42.00')
+
+        a.end_date = now - datetime.timedelta(365)
+        a.save()
+
+        biditem = auction.models.BidItem.objects.get(bid_basket=bidbasket)
+        biditem = bidbasket.delete_bid(biditem.pk)
+        self.assertTrue(biditem)
+    
+    def test_empty_bid_locked_biditem(self):
+        """
+        Test that attempting to empty a bidbasket when biditem is locked fails.
+        """
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        auction_name = 'whatever auction'
+        a,created = auction.models.Auction.objects.get_or_create(name=auction_name,
+                                                                 slug=slugify(auction_name),
+                                                                 start_date=now,
+                                                                 end_date=now + datetime.timedelta(365),
+                                                                 active=True,
+                                                                 total_bids=0)
+
+        lot_name = 'whatever'
+        lot,created = auction.models.Lot.objects.get_or_create(name=lot_name,
+                                                               slug=slugify(lot_name),
+                                                               active=True,
+                                                               auction=a)
+        bidbasket = auction.utils.get_or_create_bidbasket(self.request)
+        bidbasket.add_bid(lot, '42.00')
+
+        a.end_date = now - datetime.timedelta(365)
+        a.save()
+
+        biditem = auction.models.BidItem.objects.get(bid_basket=bidbasket)
+        bidbasket.empty()
+        biditems = auction.models.BidItem.objects.filter(bid_basket=bidbasket)
+        self.assertEqual(len(biditems), 1)
+    
+    def test_update_bid_deletes_at_zero(self):
+        """
+        Test that bids are deleted from bidbasket if amount is zero.
+        """
+        bidbasket = auction.utils.get_or_create_bidbasket(self.request)
+        bidbasket.add_bid(self.lot, '42.00')
+        biditem = auction.models.BidItem.objects.filter(bid_basket=bidbasket)[0]
+        self.assertEquals(biditem.amount, Decimal('42.00'))
+        
+        bidbasket.update_bid(biditem.pk, 'asdf')
+        biditems = auction.models.BidItem.objects.filter(bid_basket=bidbasket)
+        self.assertEqual(len(biditems), 0)
+
+        
 
 class BidItemModelTests(TestCase, TestBaseClassMixin):
     model = auction.models.BidItem
