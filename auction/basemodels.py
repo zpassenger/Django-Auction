@@ -74,6 +74,11 @@ class BaseBidBasket(models.Model):
 
         if not lot.active:
             return False
+        
+        try:
+            amount = Decimal(amount)
+        except Exception, e:
+            amount = Decimal('0')
 
         item = BidItem.objects.filter(bid_basket=self,
                                       lot=lot)
@@ -91,6 +96,12 @@ class BaseBidBasket(models.Model):
         """
         Update amount of bid. Delete bid if amount is 0.
         """
+
+        try:
+            amount = Decimal(amount)
+        except Exception, e:
+            amount = Decimal('0')
+        
         bid_basket_item = self.bids.get(pk=bid_basket_item_id)
         if not bid_basket_item.is_locked():
             if amount == 0:
