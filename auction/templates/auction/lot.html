@@ -2,11 +2,13 @@
 
 {% block content %}
 <h1>Auctions &raquo; {{lot.auction.name}} &raquo; {{lot.name}}</h1>
-<form action="" method="post">
-    {% csrf_token %}
-    {{form.amount.label}}
-    {{form.amount}}
-    <input type="hidden" name="lot_id" value="{{lot.pk}}" id="lot_id">
-    <input type="submit" name="submit" value="save bid">
-</form>
+{% if lot.active %}
+    <form action="" method="post">
+        {% csrf_token %}
+        {{form.amount.label}}
+        {{form.amount}}
+        <input type="hidden" name="lot_id" value="{{lot.pk}}" id="lot_id">
+        <input type="submit" name="submit" value="save bid">
+    </form>
+{% endif %}
 {% endblock %}
