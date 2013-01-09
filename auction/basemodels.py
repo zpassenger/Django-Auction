@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from decimal import Decimal
 from polymorphic.polymorphic_model import PolymorphicModel
 import datetime
-from django.utils.timezone import utc
+import auction.utils
 
 from south.modelsinspector import add_introspection_rules
 add_introspection_rules([], ["^auction\.basemodels\.CurrencyField"])
@@ -154,7 +154,8 @@ class BaseBidItem(models.Model):
         verbose_name_plural = _('Bid items')
 
     def is_locked(self):
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = auction.utils.get_current_time()
+
         if self.lot.auction.end_date <= now:
             return True
         return False
