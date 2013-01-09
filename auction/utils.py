@@ -36,3 +36,12 @@ def get_or_create_bidbasket(request, save=False):
 
     bidbasket = getattr(request, '_bidbasket')  # There we *must* have a bidbasket
     return bidbasket
+
+def get_current_time():
+    import datetime
+    try:
+        from django.utils.timezone import utc
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+    except ImportError:
+        now = datetime.datetime.utcnow()
+    return now

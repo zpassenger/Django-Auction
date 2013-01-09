@@ -3,10 +3,8 @@ from django.test import TestCase
 from django.template.defaultfilters import slugify
 import datetime
 import auction.utils
-from django.utils.timezone import utc
 from django.contrib.auth.models import User
 from decimal import Decimal
-from django.utils.timezone import is_aware
 
 class Mock(object):
     pass
@@ -138,7 +136,7 @@ class BidBasketModelTests(TestCase, TestBaseClassMixin):
         self.user = User.objects.create_superuser('fubar', 'fubar@example.com', 'password')
         self.user2 = User.objects.create_superuser('randomperson', 'randomperson@example.com', 'somepassword')
 
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = auction.utils.get_current_time()
         auction_name = 'Cool auction'
         auction_name2 = 'Awesome auction'
         self.auction,created = auction.models.Auction.objects.get_or_create(name=auction_name,
@@ -301,7 +299,7 @@ class BidBasketModelTests(TestCase, TestBaseClassMixin):
         self.assertEqual(len(biditems_2), 0)
     
     def test_add_bid_to_inactive_lot(self):
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = auction.utils.get_current_time()
         auction_name = 'whatever auction'
         a,created = auction.models.Auction.objects.get_or_create(name=auction_name,
                                                                  slug=slugify(auction_name),
@@ -322,7 +320,7 @@ class BidBasketModelTests(TestCase, TestBaseClassMixin):
         """
         Test that an attempt at updating a bid when biditem is locked fails.
         """
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = auction.utils.get_current_time()
         auction_name = 'whatever auction'
         a,created = auction.models.Auction.objects.get_or_create(name=auction_name,
                                                                  slug=slugify(auction_name),
@@ -350,7 +348,7 @@ class BidBasketModelTests(TestCase, TestBaseClassMixin):
         """
         Test that attempting to delete a bid when biditem is locked fails.
         """
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = auction.utils.get_current_time()
         auction_name = 'whatever auction'
         a,created = auction.models.Auction.objects.get_or_create(name=auction_name,
                                                                  slug=slugify(auction_name),
@@ -378,7 +376,7 @@ class BidBasketModelTests(TestCase, TestBaseClassMixin):
         """
         Test that attempting to empty a bidbasket when biditem is locked fails.
         """
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        now = auction.utils.get_current_time()
         auction_name = 'whatever auction'
         a,created = auction.models.Auction.objects.get_or_create(name=auction_name,
                                                                  slug=slugify(auction_name),
