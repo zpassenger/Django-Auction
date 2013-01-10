@@ -1,4 +1,6 @@
 from django.db import models
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes import generic
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import User
 from decimal import Decimal
@@ -41,6 +43,9 @@ class BaseAuctionLot(PolymorphicModel):
     name = models.CharField(max_length=255)
     slug = models.SlugField()
     active = models.BooleanField(default=False)
+    content_type = models.ForeignKey(ContentType)
+    object_id = models.PositiveIntegerField()
+    content_object = generic.GenericForeignKey('content_type', 'object_id')
     auction = models.ForeignKey('Auction', related_name='lots')
     date_added = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
