@@ -46,7 +46,6 @@ class BaseAuctionLot(PolymorphicModel):
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
     content_object = generic.GenericForeignKey('content_type', 'object_id')
-    auction = models.ForeignKey('Auction', related_name='lots')
     date_added = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
 
@@ -161,6 +160,6 @@ class BaseBidItem(models.Model):
     def is_locked(self):
         now = auction.utils.get_current_time()
 
-        if self.lot.auction.end_date <= now:
+        if self.lot.content_object.end_date <= now:
             return True
         return False
