@@ -5,6 +5,7 @@ import datetime
 import auction.utils
 from django.contrib.auth.models import User
 from decimal import Decimal
+from django.contrib.contenttypes.models import ContentType
 
 class Mock(object):
     pass
@@ -155,21 +156,24 @@ class BidBasketModelTests(TestCase, TestBaseClassMixin):
         lot_name = 'Foo bar'
         lot_name2 = 'some item'
         lot_name3 = 'cool item'
-
+        ct = ContentType.objects.get_for_model(self.auction)
         self.lot,created = auction.models.Lot.objects.get_or_create(name=lot_name,
                                                             slug=slugify(lot_name),
                                                             active=True,
-                                                            auction=self.auction)
+                                                            content_type=ct,
+                                                            object_id=self.auction.pk)
 
         self.lot2,created = auction.models.Lot.objects.get_or_create(name=lot_name2,
                                                             slug=slugify(lot_name2),
                                                             active=True,
-                                                            auction=self.auction)
+                                                            content_type=ct,
+                                                            object_id=self.auction.pk)
 
         self.lot3,created = auction.models.Lot.objects.get_or_create(name=lot_name3,
                                                             slug=slugify(lot_name3),
                                                             active=True,
-                                                            auction=self.auction2)
+                                                            content_type=ct,
+                                                            object_id=self.auction2.pk)
         self.request = Mock()
         setattr(self.request, 'user', self.user)
         
@@ -309,10 +313,12 @@ class BidBasketModelTests(TestCase, TestBaseClassMixin):
                                                                  total_bids=0)
         
         lot_name = 'whatever'
+        ct = ContentType.objects.get_for_model(a)
         lot,created = auction.models.Lot.objects.get_or_create(name=lot_name,
                                                                slug=slugify(lot_name),
                                                                active=False,
-                                                               auction=a)
+                                                               content_type=ct,
+                                                               object_id=a.pk)
         bidbasket = auction.utils.get_or_create_bidbasket(self.request)
         self.assertFalse(bidbasket.add_bid(lot, '42.00'))
     
@@ -330,10 +336,12 @@ class BidBasketModelTests(TestCase, TestBaseClassMixin):
                                                                  total_bids=0)
         
         lot_name = 'whatever'
+        ct = ContentType.objects.get_for_model(a)
         lot,created = auction.models.Lot.objects.get_or_create(name=lot_name,
                                                                slug=slugify(lot_name),
                                                                active=True,
-                                                               auction=a)
+                                                               content_type=ct,
+                                                               object_id=a.pk)
         bidbasket = auction.utils.get_or_create_bidbasket(self.request)
         bidbasket.add_bid(lot, '42.00')
         
@@ -358,10 +366,12 @@ class BidBasketModelTests(TestCase, TestBaseClassMixin):
                                                                  total_bids=0)
 
         lot_name = 'whatever'
+        ct = ContentType.objects.get_for_model(a)
         lot,created = auction.models.Lot.objects.get_or_create(name=lot_name,
                                                                slug=slugify(lot_name),
                                                                active=True,
-                                                               auction=a)
+                                                               content_type=ct,
+                                                               object_id=a.pk)
         bidbasket = auction.utils.get_or_create_bidbasket(self.request)
         bidbasket.add_bid(lot, '42.00')
 
@@ -386,10 +396,12 @@ class BidBasketModelTests(TestCase, TestBaseClassMixin):
                                                                  total_bids=0)
 
         lot_name = 'whatever'
+        ct = ContentType.objects.get_for_model(a)
         lot,created = auction.models.Lot.objects.get_or_create(name=lot_name,
                                                                slug=slugify(lot_name),
                                                                active=True,
-                                                               auction=a)
+                                                               content_type=ct,
+                                                               object_id=a.pk)
         bidbasket = auction.utils.get_or_create_bidbasket(self.request)
         bidbasket.add_bid(lot, '42.00')
 
