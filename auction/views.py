@@ -1,5 +1,6 @@
 import os
 from django.views.generic import ListView, DetailView
+from django.contrib.contenttypes.models import ContentType
 from django.views.generic.edit import FormView
 from django.views.generic.detail import SingleObjectMixin
 from django.shortcuts import get_object_or_404
