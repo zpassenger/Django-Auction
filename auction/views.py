@@ -29,7 +29,7 @@ class AuctionView(DetailView):
     def get_context_data(self, **kwargs):
         context = super(AuctionView, self).get_context_data(**kwargs)
         object_type = ContentType.objects.get_for_model(self.object)
-        context['object_list'] = auctions.models.Lot.objects.filter(content_type__pk=object_type.pk,
+        context['object_list'] = auction.models.Lot.objects.filter(content_type__pk=object_type.pk,
                                                                     object_id=self.object.pk).all()
         return context
 
