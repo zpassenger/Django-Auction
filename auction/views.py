@@ -27,7 +27,7 @@ class AuctionView(DetailView):
     
     def get_context_data(self, **kwargs):
         context = super(AuctionView, self).get_context_data(**kwargs)
-        context['object_list'] = self.object.lots.all() 
+        context['object_list'] = self.object.lots.select_related('auction').all() 
         return context
 
 class LotDetailView(SingleObjectMixin, FormView):
