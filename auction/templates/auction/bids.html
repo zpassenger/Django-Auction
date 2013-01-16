@@ -6,7 +6,7 @@
     <ul>
         {% for object in object_list %}
             <li>
-                <a href="{% url lot object.lot.auction.slug object.lot.slug object.lot.pk %}">{{object.lot.name}}</a> {{object.amount}}
+                <a href="{% url lot object.lot.content_object.slug object.lot.slug object.lot.pk %}">{{object.lot.name}}</a> {{object.amount}}
                 {% if not object.is_locked %}
                     <a href="{% url delete_bid object.pk %}">delete</a>
                 {% endif %}
