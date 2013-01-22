@@ -43,6 +43,7 @@ class BaseAuctionLot(PolymorphicModel):
     name = models.CharField(max_length=255)
     slug = models.SlugField()
     active = models.BooleanField(default=False)
+    biddable = models.BooleanField(default=False)
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
     content_object = generic.GenericForeignKey('content_type', 'object_id')
@@ -76,7 +77,7 @@ class BaseBidBasket(models.Model):
         from auction.models import BidItem
         self.save()
 
-        if not lot.active:
+        if not lot.biddable:
             return False
         
         try:
