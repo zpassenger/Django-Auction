@@ -1,4 +1,4 @@
-from auction.utils import get_or_create_bidbasket
+from auction.utils.generic import get_or_create_bidbasket
 
 def bidbasket(request):
     user = request.user

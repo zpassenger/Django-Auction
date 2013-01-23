@@ -1,6 +1,7 @@
 from django import forms
 import auction.models
-import auction.utils
+from auction.utils.generic import get_or_create_bidbasket
+from auction.models import Lot
 
 class BidForm(forms.Form):
     amount = forms.DecimalField()
@@ -10,7 +11,14 @@ class BidForm(forms.Form):
         lot_id = self.data.get('lot_id')
         amount = self.data.get('amount')
         
-        lot = auction.models.Lot.objects.get(pk=lot_id)
+        lot = self.get_lot(lot_id)
 
-        bidbasket = auction.utils.get_or_create_bidbasket(request)
+        bidbasket = get_or_create_bidbasket(request)
         return bidbasket.add_bid(lot, amount)
+    
+    def get_lot(self, lot_id):
+        """
+        For simplified extending.
+        """
+        #return auction.models.Lot.objects.get(pk=lot_id)
+        return Lot.biddable.get(pk=lot_id)

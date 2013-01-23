@@ -1,8 +1,8 @@
-import auction.basemodels
+import auction.models.bases
 from django.test import TestCase
 from django.template.defaultfilters import slugify
 import datetime
-import auction.utils
+import auction.utils.generic
 from django.contrib.auth.models import User
 from decimal import Decimal
 from django.contrib.contenttypes.models import ContentType
@@ -61,7 +61,7 @@ class BaseAuctionModelTests(TestCase, ModelTestMixin):
         'last_modified',
         '__unicode__'
     ]
-    model = auction.basemodels.BaseAuction
+    model = auction.models.bases.BaseAuction
     app_label = 'auction'
     verbose_name = 'Auction'
     verbose_name_plural = 'Auctions'
@@ -81,7 +81,7 @@ class BaseAuctionLotModelTests(TestCase, ModelTestMixin):
         'last_modified',
         '__unicode__'
     ]
-    model = auction.basemodels.BaseAuctionLot
+    model = auction.models.bases.BaseAuctionLot
     app_label = 'auction'
     verbose_name = 'Auction lot'
     verbose_name_plural = 'Auction lots'
@@ -102,7 +102,7 @@ class BaseBidBasketModelTests(TestCase, ModelTestMixin):
         'empty',
         'total_bids',
     ]
-    model = auction.basemodels.BaseBidBasket
+    model = auction.models.bases.BaseBidBasket
     app_label = 'auction'
     verbose_name = 'Bid basket'
     verbose_name_plural = 'Bid baskets'
@@ -115,7 +115,7 @@ class BaseBidItemModelTests(TestCase, ModelTestMixin):
         'amount',
         'is_locked',
     ]
-    model = auction.basemodels.BaseBidItem
+    model = auction.models.bases.BaseBidItem
     app_label = 'auction'
     verbose_name = 'Bid item'
     verbose_name_plural = 'Bid items'
@@ -137,7 +137,7 @@ class BidBasketModelTests(TestCase, TestBaseClassMixin):
         self.user = User.objects.create_superuser('fubar', 'fubar@example.com', 'password')
         self.user2 = User.objects.create_superuser('randomperson', 'randomperson@example.com', 'somepassword')
 
-        now = auction.utils.get_current_time()
+        now = auction.utils.generic.get_current_time()
         auction_name = 'Cool auction'
         auction_name2 = 'Awesome auction'
         self.auction,created = auction.models.Auction.objects.get_or_create(name=auction_name,
@@ -184,7 +184,7 @@ class BidBasketModelTests(TestCase, TestBaseClassMixin):
         """
         Test that adding a bid to the bid basket actually works.
         """
-        bidbasket = auction.utils.get_or_create_bidbasket(self.request)
+        bidbasket = auction.utils.generic.get_or_create_bidbasket(self.request)
         bidbasket.add_bid(self.lot, '42.00')
         biditem = auction.models.BidItem.objects.filter(bid_basket=bidbasket)[0]
         self.assertEquals(biditem.lot.name, 'Foo bar')
@@ -193,7 +193,7 @@ class BidBasketModelTests(TestCase, TestBaseClassMixin):
         """
         Test that updating a bid works.
         """
-        bidbasket = auction.utils.get_or_create_bidbasket(self.request)
+        bidbasket = auction.utils.generic.get_or_create_bidbasket(self.request)
         bidbasket.add_bid(self.lot, '42.00')
         biditem = auction.models.BidItem.objects.filter(bid_basket=bidbasket)[0]
         self.assertEquals(biditem.amount, Decimal('42.00'))
@@ -205,7 +205,7 @@ class BidBasketModelTests(TestCase, TestBaseClassMixin):
         """
         Test that updating a bid works when a bid basket has multiple bid items.
         """
-        bidbasket = auction.utils.get_or_create_bidbasket(self.request)
+        bidbasket = auction.utils.generic.get_or_create_bidbasket(self.request)
         bidbasket.add_bid(self.lot, '42.00')
         bidbasket.add_bid(self.lot2, '1.00')
         bidbasket.add_bid(self.lot3, '5.00')
@@ -230,7 +230,7 @@ class BidBasketModelTests(TestCase, TestBaseClassMixin):
         """
         Test that deleting a bid works.
         """
-        bidbasket = auction.utils.get_or_create_bidbasket(self.request)
+        bidbasket = auction.utils.generic.get_or_create_bidbasket(self.request)
         bidbasket.add_bid(self.lot, '42.00')
         biditem = auction.models.BidItem.objects.get(bid_basket=bidbasket)
         self.assertEquals(biditem.lot.name, 'Foo bar')
@@ -244,7 +244,7 @@ class BidBasketModelTests(TestCase, TestBaseClassMixin):
         """
         Test that deleting a single bid works when there are multiple bid items in a bid basket.
         """
-        bidbasket = auction.utils.get_or_create_bidbasket(self.request)
+        bidbasket = auction.utils.generic.get_or_create_bidbasket(self.request)
         bidbasket.add_bid(self.lot, '42.00')
         bidbasket.add_bid(self.lot2, '100.00')
         bidbasket.add_bid(self.lot3, '110.00')
@@ -262,7 +262,7 @@ class BidBasketModelTests(TestCase, TestBaseClassMixin):
         """
         Test that calling empty on a bid basket removes all bids from it.
         """
-        bidbasket = auction.utils.get_or_create_bidbasket(self.request)
+        bidbasket = auction.utils.generic.get_or_create_bidbasket(self.request)
         bidbasket.add_bid(self.lot, '42.00')
         bidbasket.add_bid(self.lot2, '100.00')
         bidbasket.add_bid(self.lot3, '110.00')
@@ -278,8 +278,8 @@ class BidBasketModelTests(TestCase, TestBaseClassMixin):
         Test that bidbasket functions correctly when there are multiple users and
         bid baskets in the database.
         """
-        bidbasket_1 = auction.utils.get_or_create_bidbasket(self.request)
-        bidbasket_2 = auction.utils.get_or_create_bidbasket(self.request2)
+        bidbasket_1 = auction.utils.generic.get_or_create_bidbasket(self.request)
+        bidbasket_2 = auction.utils.generic.get_or_create_bidbasket(self.request2)
         
         bidbasket_1.add_bid(self.lot, '5.00')
         bidbasket_1.add_bid(self.lot2, '15.00')
@@ -303,7 +303,7 @@ class BidBasketModelTests(TestCase, TestBaseClassMixin):
         self.assertEqual(len(biditems_2), 0)
     
     def test_add_bid_to_inactive_lot(self):
-        now = auction.utils.get_current_time()
+        now = auction.utils.generic.get_current_time()
         auction_name = 'whatever auction'
         a,created = auction.models.Auction.objects.get_or_create(name=auction_name,
                                                                  slug=slugify(auction_name),
@@ -319,14 +319,14 @@ class BidBasketModelTests(TestCase, TestBaseClassMixin):
                                                                active=False,
                                                                content_type=ct,
                                                                object_id=a.pk)
-        bidbasket = auction.utils.get_or_create_bidbasket(self.request)
+        bidbasket = auction.utils.generic.get_or_create_bidbasket(self.request)
         self.assertFalse(bidbasket.add_bid(lot, '42.00'))
     
     def test_update_bid_locked_biditem(self):
         """
         Test that an attempt at updating a bid when biditem is locked fails.
         """
-        now = auction.utils.get_current_time()
+        now = auction.utils.generic.get_current_time()
         auction_name = 'whatever auction'
         a,created = auction.models.Auction.objects.get_or_create(name=auction_name,
                                                                  slug=slugify(auction_name),
@@ -342,7 +342,7 @@ class BidBasketModelTests(TestCase, TestBaseClassMixin):
                                                                active=True,
                                                                content_type=ct,
                                                                object_id=a.pk)
-        bidbasket = auction.utils.get_or_create_bidbasket(self.request)
+        bidbasket = auction.utils.generic.get_or_create_bidbasket(self.request)
         bidbasket.add_bid(lot, '42.00')
         
         a.end_date = now - datetime.timedelta(365)
@@ -356,7 +356,7 @@ class BidBasketModelTests(TestCase, TestBaseClassMixin):
         """
         Test that attempting to delete a bid when biditem is locked fails.
         """
-        now = auction.utils.get_current_time()
+        now = auction.utils.generic.get_current_time()
         auction_name = 'whatever auction'
         a,created = auction.models.Auction.objects.get_or_create(name=auction_name,
                                                                  slug=slugify(auction_name),
@@ -372,7 +372,7 @@ class BidBasketModelTests(TestCase, TestBaseClassMixin):
                                                                active=True,
                                                                content_type=ct,
                                                                object_id=a.pk)
-        bidbasket = auction.utils.get_or_create_bidbasket(self.request)
+        bidbasket = auction.utils.generic.get_or_create_bidbasket(self.request)
         bidbasket.add_bid(lot, '42.00')
 
         a.end_date = now - datetime.timedelta(365)
@@ -386,7 +386,7 @@ class BidBasketModelTests(TestCase, TestBaseClassMixin):
         """
         Test that attempting to empty a bidbasket when biditem is locked fails.
         """
-        now = auction.utils.get_current_time()
+        now = auction.utils.generic.get_current_time()
         auction_name = 'whatever auction'
         a,created = auction.models.Auction.objects.get_or_create(name=auction_name,
                                                                  slug=slugify(auction_name),
@@ -402,7 +402,7 @@ class BidBasketModelTests(TestCase, TestBaseClassMixin):
                                                                active=True,
                                                                content_type=ct,
                                                                object_id=a.pk)
-        bidbasket = auction.utils.get_or_create_bidbasket(self.request)
+        bidbasket = auction.utils.generic.get_or_create_bidbasket(self.request)
         bidbasket.add_bid(lot, '42.00')
 
         a.end_date = now - datetime.timedelta(365)
@@ -417,7 +417,7 @@ class BidBasketModelTests(TestCase, TestBaseClassMixin):
         """
         Test that bids are deleted from bidbasket if amount is zero.
         """
-        bidbasket = auction.utils.get_or_create_bidbasket(self.request)
+        bidbasket = auction.utils.generic.get_or_create_bidbasket(self.request)
         bidbasket.add_bid(self.lot, '42.00')
         biditem = auction.models.BidItem.objects.filter(bid_basket=bidbasket)[0]
         self.assertEquals(biditem.amount, Decimal('42.00'))

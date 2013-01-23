@@ -1,9 +1,9 @@
-import auction.models
+from auction.models.bidbasket import BidBasket
 from django.contrib.auth.models import AnonymousUser
 
 def get_bidbasket_from_database(request):
     try:
-        return auction.models.BidBasket.objects.filter(user=request.user)[0]
+        return BidBasket.objects.filter(user=request.user)[0]
     except Exception, e:
         return False
 
@@ -26,7 +26,7 @@ def get_or_create_bidbasket(request, save=False):
                 # and save it to the session
                 request.session['bidbasket_id'] = bidbasket.pk
             else:
-                bidbasket = auction.models.BidBasket(user=request.user)    
+                bidbasket = BidBasket(user=request.user)    
 
         if save and not bidbasket.pk:
             bidbasket.save()
