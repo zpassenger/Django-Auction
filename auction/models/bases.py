@@ -1,15 +1,14 @@
+from decimal import Decimal
 from django.db import models
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes import generic
+from polymorphic.polymorphic_model import PolymorphicModel
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import User
-from decimal import Decimal
-from polymorphic.polymorphic_model import PolymorphicModel
-import datetime
-import auction.utils
-
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes import generic
+from auction.utils.loader import get_model_string
 from south.modelsinspector import add_introspection_rules
-add_introspection_rules([], ["^auction\.basemodels\.CurrencyField"])
+
+add_introspection_rules([], ["^auction\.models\.bases\.CurrencyField"])
 
 class CurrencyField(models.DecimalField):
     __metaclass__ = models.SubfieldBase
@@ -39,26 +38,6 @@ class BaseAuction(PolymorphicModel):
     def __unicode__(self):
         return self.name
 
-class BaseAuctionLot(PolymorphicModel):
-    name = models.CharField(max_length=255)
-    slug = models.SlugField()
-    active = models.BooleanField(default=False)
-    biddable = models.BooleanField(default=False)
-    content_type = models.ForeignKey(ContentType)
-    object_id = models.PositiveIntegerField()
-    content_object = generic.GenericForeignKey('content_type', 'object_id')
-    date_added = models.DateTimeField(auto_now_add=True)
-    last_modified = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        abstract = True
-        app_label = 'auction'
-        verbose_name = _('Auction lot')
-        verbose_name_plural = _('Auction lots')
-
-    def __unicode__(self):
-        return self.name
-
 class BaseBidBasket(models.Model):
     """
     This models functions similarly to a shopping cart, except it expects a logged in user.
@@ -77,9 +56,9 @@ class BaseBidBasket(models.Model):
         from auction.models import BidItem
         self.save()
 
-        if not lot.biddable:
+        if not lot.is_biddable:
             return False
-        
+
         try:
             amount = Decimal(amount)
         except Exception, e:
@@ -106,7 +85,7 @@ class BaseBidBasket(models.Model):
             amount = Decimal(amount)
         except Exception, e:
             amount = Decimal('0')
-        
+
         bid_basket_item = self.bids.get(pk=bid_basket_item_id)
         if not bid_basket_item.is_locked():
             if amount == 0:
@@ -142,6 +121,26 @@ class BaseBidBasket(models.Model):
         """
         return len(self.bids.all())
 
+class BaseAuctionLot(PolymorphicModel):
+    name = models.CharField(max_length=255)
+    slug = models.SlugField()
+    active = models.BooleanField(default=False)
+    is_biddable = models.BooleanField(default=False)
+    content_type = models.ForeignKey(ContentType)
+    object_id = models.PositiveIntegerField()
+    content_object = generic.GenericForeignKey('content_type', 'object_id')
+    date_added = models.DateTimeField(auto_now_add=True)
+    last_modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True
+        app_label = 'auction'
+        verbose_name = _('Auction lot')
+        verbose_name_plural = _('Auction lots')
+
+    def __unicode__(self):
+        return self.name
+
 class BaseBidItem(models.Model):
     """
     This is a holder for total number of bids and a pointer to
@@ -149,7 +148,7 @@ class BaseBidItem(models.Model):
     """
 
     bid_basket = models.ForeignKey('auction.BidBasket', related_name='bids')
-    lot = models.ForeignKey('auction.Lot')
+    lot = models.ForeignKey(get_model_string('Lot'), related_name="bids")
     amount = CurrencyField(max_digits=100, decimal_places=2, null=True, blank=True)
 
     class Meta:
@@ -159,7 +158,7 @@ class BaseBidItem(models.Model):
         verbose_name_plural = _('Bid items')
 
     def is_locked(self):
-        now = auction.utils.get_current_time()
+        now = get_current_time()
 
         if self.lot.content_object.end_date <= now:
             return True

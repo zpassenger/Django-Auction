@@ -1,4 +1,3 @@
-import os
 from django.views.generic import ListView, DetailView
 from django.contrib.contenttypes.models import ContentType
 from django.views.generic.edit import FormView
@@ -8,14 +7,13 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 import auction.models
 import auction.forms
-import auction.utils
+from auction.utils.generic import get_or_create_bidbasket
 
 class AuctionListView(ListView):
     """
     View for displaying auctions.
     """
     
-    template_name = os.path.join('auction', 'auctions.html')
     model = auction.models.Auction
 
 class AuctionView(DetailView):
@@ -23,7 +21,6 @@ class AuctionView(DetailView):
     View for displaying auction lots.
     """
     
-    template_name = os.path.join('auction', 'lots.html')
     model = auction.models.Auction
     
     def get_context_data(self, **kwargs):
@@ -38,7 +35,6 @@ class LotDetailView(SingleObjectMixin, FormView):
     View for display lot details.
     """
 
-    template_name = os.path.join('auction', 'lot.html')
     model = auction.models.Lot
     form_class = auction.forms.BidForm
     
@@ -59,7 +55,6 @@ class BidListView(ListView):
     View for displaying bids.
     """
     
-    template_name = os.path.join('auction', 'bids.html')
     model = auction.models.BidItem
 
 class BidDetailView(DetailView):
@@ -67,7 +62,6 @@ class BidDetailView(DetailView):
     View for display information about a bid.
     """
     
-    template_name = os.path.join('auction', 'bid.html')
     model = auction.models.BidItem
     action = None
     
@@ -85,7 +79,7 @@ class BidDetailView(DetailView):
         return handler(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
-        bidbasket = auction.utils.get_or_create_bidbasket(self.request)
+        bidbasket = get_or_create_bidbasket(self.request)
         item_id = self.kwargs.get('bid_id')
         bidbasket.delete_bid(item_id)
         return HttpResponseRedirect(reverse('bids'))
